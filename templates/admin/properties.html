@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Manage properties | AG Realty{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<section class="wrap section">
+  <div class="section-head"><h1 class="h2">Properties</h1><a class="btn btn-gold btn-sm" href="{{ url_for('admin_property_new') }}">Add property</a></div>
+  <form class="filters slim" method="get">
+    <label>Search<input name="q" value="{{ q }}" placeholder="Title or location"></label>
+    <label>Show<select name="state"><option value="">All</option><option value="pending" {{ 'selected' if state=='pending' }}>Awaiting approval</option>{% for s in ('available','sold','rented') %}<option value="{{ s }}" {{ 'selected' if state==s }}>{{ s|capitalize }}</option>{% endfor %}</select></label>
+    <div class="filter-actions"><button class="btn btn-gold btn-sm">Filter</button></div>
+  </form>
+  {% if items %}
+  <div class="table-wrap"><table class="table"><thead><tr><th>Property</th><th>Deal</th><th>Price</th><th>Availability</th><th>Actions</th></tr></thead><tbody>
+  {% for p in items %}<tr>
+    <td data-l="Property"><a href="{{ url_for('admin_property_edit', pid=p.id) }}"><b>{{ p.title }}</b></a><br><small>{{ p.location }}{% if p.featured %} · Featured{% endif %}</small></td>
+    <td data-l="Deal">{{ 'Buy' if p.listing_type=='buy' else 'Rent' }}</td>
+    <td data-l="Price">{{ p.price|inr }}</td>
+    <td data-l="Availability">
+      {% if not p.approved %}<form class="inline" method="post" action="{{ url_for('admin_property_quick', pid=p.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="approve" value="1"><button class="btn btn-gold btn-sm">Approve</button></form>
+      {% else %}
+      <form class="inline" method="post" action="{{ url_for('admin_property_quick', pid=p.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <select name="status" onchange="this.form.submit()" aria-label="Availability">{% for s in ('available','sold','rented') %}<option value="{{ s }}" {{ 'selected' if p.status==s }}>{{ s|capitalize }}</option>{% endfor %}</select></form>
+      {% endif %}
+    </td>
+    <td data-l="Actions" class="actions">
+      <a href="{{ url_for('property_detail', pid=p.id) }}">View</a>
+      <a href="{{ url_for('admin_property_edit', pid=p.id) }}">Edit</a>
+      <form class="inline" method="post" action="{{ url_for('admin_property_delete', pid=p.id) }}" onsubmit="return confirm('Delete this property and its media? This cannot be undone.')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linklike danger">Delete</button></form>
+    </td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<div class="empty"><p>No properties found.</p><a class="btn btn-gold" href="{{ url_for('admin_property_new') }}">Add your first property</a></div>{% endif %}
+</section>
+{% endblock %}

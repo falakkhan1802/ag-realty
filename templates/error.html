@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} | AG Realty{% endblock %}
+{% block content %}
+<section class="wrap narrow center page-pad">
+  <h1 class="display">{{ code }}</h1>
+  <p class="lead">{{ msg }}</p>
+  <a class="btn btn-gold" href="{{ url_for('index') }}">Back to home</a>
+</section>
+{% endblock %}

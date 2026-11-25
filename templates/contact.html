@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import enquiry_form with context %}
+{% block title %}Contact AG Realty{% endblock %}
+{% block content %}
+<section class="page-head"><div class="wrap"><h1>Contact AG Realty</h1><p class="lead">Call, message or send an enquiry. We reply quickly.</p></div></section>
+<section class="wrap section contact-grid">
+  <div class="side-card">
+    <h3>Reach us directly</h3>
+    <div class="side-actions">
+      {% for n in (site.phone1, site.phone2) if n %}
+        <a class="btn btn-gold" href="tel:+91{{ n }}">Call {{ n }}</a>
+      {% endfor %}
+      <a class="btn btn-wa" target="_blank" rel="noopener" href="{{ wa_link('Hello AG Realty, I would like to talk about a property.') }}">WhatsApp</a>
+    </div>
+    {% if site.email %}<p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>{% endif %}
+    {% if site.address %}<p>{{ site.address }}</p>{% endif %}
+    {% if site.hours %}<p class="note">{{ site.hours }}</p>{% endif %}
+    {% if socials %}<h4>Follow us</h4><p class="social-list">{% for s in socials %}<a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.label }}</a>{% endfor %}</p>{% endif %}
+  </div>
+  <div class="side-card"><h3>Send an enquiry</h3>{{ enquiry_form(None, url_for('contact')) }}</div>
+</section>
+{% endblock %}

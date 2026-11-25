@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% from "_macros.html" import property_grid with context %}
+{% macro iso(x,y,z) -%}{{ (400 + (x-y)*0.866)|round(1) }},{{ (330 + (x+y)*0.5 - z)|round(1) }}{%- endmacro %}
+{% macro box(x,y,w,d,h) %}
+<polygon class="b-top" points="{{ iso(x,y,h) }} {{ iso(x+w,y,h) }} {{ iso(x+w,y+d,h) }} {{ iso(x,y+d,h) }}"/>
+<polygon class="b-left" points="{{ iso(x,y+d,0) }} {{ iso(x+w,y+d,0) }} {{ iso(x+w,y+d,h) }} {{ iso(x,y+d,h) }}"/>
+<polygon class="b-right" points="{{ iso(x+w,y,0) }} {{ iso(x+w,y+d,0) }} {{ iso(x+w,y+d,h) }} {{ iso(x+w,y,h) }}"/>
+{% for k in range(1, (h/16)|int) %}
+<polyline class="b-line" points="{{ iso(x,y+d,k*16) }} {{ iso(x+w,y+d,k*16) }}"/>
+<polyline class="b-line" points="{{ iso(x+w,y,k*16) }} {{ iso(x+w,y+d,k*16) }}"/>
+{% endfor %}
+{% endmacro %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <h1>Find Your Dream Property</h1>
+      <p class="lead">Apartments, villas, houses and plots to buy or rent, with real photos, nearby places and honest advice from AG Realty.</p>
+      <form class="search glass" action="{{ url_for('properties') }}" method="get" data-budget-form>
+        <div class="seg" role="radiogroup" aria-label="Buy or rent">
+          <label><input type="radio" name="listing_type" value="buy" checked><span>Buy</span></label>
+          <label><input type="radio" name="listing_type" value="rent"><span>Rent</span></label>
+        </div>
+        <div class="search-fields">
+          <label>Location<input name="q" placeholder="City, area or project" autocomplete="off"></label>
+          <label>Property type
+            <select name="property_type"><option value="">Any type</option>{% for t in PROPERTY_TYPES %}<option>{{ t }}</option>{% endfor %}</select>
+          </label>
+          <label>Budget
+            <select name="budget" data-budget>
+              <option value="">Any budget</option><option value="0-2500000">Under ₹25 L</option><option value="2500000-5000000">₹25 L – ₹50 L</option>
+              <option value="5000000-10000000">₹50 L – ₹1 Cr</option><option value="10000000-30000000">₹1 Cr – ₹3 Cr</option><option value="30000000-">Above ₹3 Cr</option>
+            </select>
+          </label>
+          <button class="btn btn-gold" type="submit">Search properties</button>
+        </div>
+      </form>
+      <div class="hero-links">
+        <a href="{{ wa_link('Hello AG Realty, I am looking for a property.') }}" target="_blank" rel="noopener" class="btn btn-ghost">WhatsApp enquiry</a>
+        {% for s in socials if s.platform == 'instagram' %}<a href="{{ s.url }}" target="_blank" rel="noopener" class="btn btn-ghost">Instagram {{ s.label }}</a>{% endfor %}
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg id="iso" viewBox="0 0 800 560" role="img">
+        <defs>
+          <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E9D3A1"/><stop offset="1" stop-color="#B8924A"/></linearGradient>
+          <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2D4B6B"/><stop offset="1" stop-color="#16293D"/></linearGradient>
+          <linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B3550"/><stop offset="1" stop-color="#0C1A28"/></linearGradient>
+        </defs>
+        <polygon class="ground" points="{{ iso(-90,-90,0) }} {{ iso(260,-90,0) }} {{ iso(260,260,0) }} {{ iso(-90,260,0) }}"/>
+        <g>{{ box(0,0,100,100,260) }}</g>
+        <g>{{ box(-10,130,90,70,110) }}</g>
+        <g>{{ box(130,10,80,80,160) }}</g>
+      </svg>
+      <span class="viz-note">3D Visualization</span>
+    </div>
+  </div>
+</section>
+
+<section class="wrap strip">
+  <div><strong>{{ stats.buy }}</strong><span>homes for sale</span></div>
+  <div><strong>{{ stats.rent }}</strong><span>homes for rent</span></div>
+  <div><strong>{{ stats.sold }}</strong><span>sold or rented</span></div>
+</section>
+
+<section class="wrap section">
+  <div class="section-head"><h2>Featured properties</h2><a href="{{ url_for('properties') }}">View all</a></div>
+  {{ property_grid(featured, "Featured properties will appear here once the admin marks them as featured.") }}
+</section>
+
+<section class="band">
+  <div class="wrap three">
+    <a class="path" href="{{ url_for('buy') }}"><h3>Buy</h3><p>Browse homes and plots for sale with photos, videos and nearby places.</p><span class="more">See properties for sale</span></a>
+    <a class="path" href="{{ url_for('rent') }}"><h3>Rent</h3><p>Find a place to live or work, with monthly prices shown clearly.</p><span class="more">See rentals</span></a>
+    <a class="path" href="{{ url_for('sell') }}"><h3>Sell</h3><p>List your property with AG Realty. We review every listing before it goes live.</p><span class="more">Submit your property</span></a>
+  </div>
+</section>
+
+<section class="wrap section">
+  <div class="section-head"><h2>Recently added</h2><a href="{{ url_for('properties') }}?sort=newest">See newest</a></div>
+  {{ property_grid(recent, "No properties have been added yet. Check back soon.") }}
+</section>
+
+<section class="wrap section">
+  <div class="cta glass-dark">
+    <div><h2>Talk to AG Realty today</h2><p>Call or message us and we will help you shortlist, visit and close.</p></div>
+    <div class="cta-actions">
+      {% if site.phone1 %}<a class="btn btn-gold" href="tel:+91{{ site.phone1 }}">Call {{ site.phone1 }}</a>{% endif %}
+      <a class="btn btn-ghost" href="{{ wa_link('Hello AG Realty, I would like to talk about a property.') }}" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+  <div class="share-row"><span>Share AG Realty</span>
+    <a target="_blank" rel="noopener" href="https://wa.me/?text={{ request.url_root|urlencode }}">WhatsApp</a>
+    <a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ request.url_root|urlencode }}">Facebook</a>
+    <a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url={{ request.url_root|urlencode }}&text=AG%20Realty">X</a>
+    <button type="button" class="linklike" data-share data-url="{{ request.url_root }}" data-title="AG Realty">Copy or share link</button>
+  </div>
+</section>
+{% endblock %}

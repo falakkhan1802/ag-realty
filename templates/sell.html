@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sell or rent out your property | AG Realty{% endblock %}
+{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block content %}
+<section class="page-head"><div class="wrap"><h1>Sell or rent out your property</h1><p class="lead">Send us the details. AG Realty reviews every submission and contacts you before it goes live.</p></div></section>
+<section class="wrap section narrow">
+  <form class="form big-form" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set admin = false %}{% include "_property_fields.html" %}
+    <button class="btn btn-gold">Submit property</button>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static', filename='js/picker.js') }}"></script>{% endblock %}

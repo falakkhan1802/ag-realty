@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% from "_macros.html" import price, badge, enquiry_form, property_grid with context %}
+{% block title %}{{ p.title }} | AG Realty{% endblock %}
+{% block desc %}{{ p.property_type }} {{ 'for sale' if p.listing_type=='buy' else 'for rent' }} in {{ p.location }}{% endblock %}
+{% block og %}
+<meta property="og:title" content="{{ p.title }} | AG Realty">
+<meta property="og:description" content="{{ p.property_type }} in {{ p.location }}, {{ p.price|price_short }}">
+{% if p.cover and p.cover_kind == 'photo' %}<meta property="og:image" content="{{ request.url_root.rstrip('/') }}{{ media_url(p.cover) }}">{% endif %}
+{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% if panoramas %}<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.css">{% endif %}
+{% endblock %}
+{% block content %}
+{% set msg = 'Hello AG Realty, I am interested in "' ~ p.title ~ '" (' ~ p.location ~ '). ' ~ share_url %}
+<section class="wrap section detail">
+  {% if not p.approved %}<div class="flash info">This listing is waiting for admin approval and is only visible to you.</div>{% endif %}
+  <div class="detail-top">
+    <div>
+      <p class="crumbs"><a href="{{ url_for('properties') }}">Properties</a> / {{ p.location }}</p>
+      <h1>{{ p.title }}</h1>
+      <p class="loc">{{ p.location }}</p>
+    </div>
+    <div class="detail-price">
+      <div class="big">{{ price(p, false) }}</div>
+      <span class="status {{ p.status }}">{{ p.status|capitalize }}</span>
+    </div>
+  </div>
+
+  {% if photos or visuals %}
+  <div class="gallery" data-gallery>
+    {% for i in (photos + visuals)[:5] %}
+    <a class="g-item {{ 'g-main' if loop.first }}" href="{{ media_url(i.filename) }}" data-full="{{ media_url(i.filename) }}" data-kind="{{ IMAGE_KINDS.get(i.kind) or '' }}">
+      <img src="{{ media_url(i.filename) }}" alt="{{ p.title }} photo {{ loop.index }}" {{ 'loading=lazy' if not loop.first }}>{{ badge(i.kind) }}
+    </a>
+    {% endfor %}
+    {% for i in (photos + visuals)[5:] %}<a class="g-hidden" href="{{ media_url(i.filename) }}" data-full="{{ media_url(i.filename) }}" data-kind="{{ IMAGE_KINDS.get(i.kind) or '' }}"></a>{% endfor %}
+    {% if (photos + visuals)|length > 5 %}<button class="btn btn-ghost-d g-more" type="button" data-open-gallery>View all {{ (photos + visuals)|length }} images</button>{% endif %}
+  </div>
+  {% else %}<div class="gallery-empty">Photos for this property are coming soon.</div>{% endif %}
+
+  <div class="detail-grid">
+    <div class="detail-main">
+      <ul class="spec">
+        <li><b>{{ 'Buy' if p.listing_type=='buy' else 'Rent' }}</b><span>Deal</span></li>
+        <li><b>{{ p.property_type }}</b><span>Type</span></li>
+        {% if p.bedrooms %}<li><b>{{ p.bedrooms }}</b><span>Bedrooms</span></li>{% endif %}
+        {% if p.bathrooms %}<li><b>{{ p.bathrooms }}</b><span>Bathrooms</span></li>{% endif %}
+        {% if p.area_sqft %}<li><b>{{ '%g'|format(p.area_sqft) }}</b><span>Sq ft</span></li>{% endif %}
+      </ul>
+      {% if p.description %}<h2>About this property</h2><p class="prose">{{ p.description }}</p>{% endif %}
+      {% if p.show_exact and p.address_private %}<h2>Address</h2><p>{{ p.address_private }}</p>{% endif %}
+      {% if amenities %}<h2>Amenities</h2><ul class="chips">{% for a in amenities %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
+
+      {% if visuals or panoramas %}
+      <h2>3D views and proposed visuals</h2>
+      <p class="note">These are computer-generated images. They are not photographs of the finished or current property.</p>
+      <div class="viz-grid">
+        {% for i in visuals %}<a class="viz" href="{{ media_url(i.filename) }}" data-full="{{ media_url(i.filename) }}" data-kind="{{ IMAGE_KINDS[i.kind] }}"><img src="{{ media_url(i.filename) }}" alt="{{ IMAGE_KINDS[i.kind] }}" loading="lazy">{{ badge(i.kind) }}</a>{% endfor %}
+        {% for i in panoramas %}<div class="viz pano-box"><div class="pano" id="pano{{ i.id }}" data-pano="{{ media_url(i.filename) }}"></div>{{ badge(i.kind) }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if videos %}
+      <h2>Videos</h2>
+      <div class="video-grid">
+        {% for v in videos %}
+        <figure class="video">
+          {% if v.url %}{% set e = v.url|embed %}
+            {% if e %}<iframe src="{{ e }}" title="{{ VIDEO_KINDS[v.kind] }}" loading="lazy" allowfullscreen></iframe>
+            {% else %}<video controls preload="metadata" src="{{ v.url }}"></video>{% endif %}
+          {% else %}<video controls preload="metadata" src="{{ media_url(v.filename) }}"></video>{% endif %}
+          <figcaption>{{ VIDEO_KINDS[v.kind] }}</figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <h2>Location and nearby places</h2>
+      {% if point %}
+        <p class="note">{% if point[2] %}Exact location shown by the owner.{% else %}The shaded circle shows the approximate area. The exact address is shared when you enquire.{% endif %}</p>
+        <div class="map-tools" id="map-filters"></div>
+        <div id="map" class="map" aria-label="Map of the property and nearby places"></div>
+        <div class="map-actions">
+          <a class="btn btn-ghost-d" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ point[0] }},{{ point[1] }}">Directions in Google Maps</a>
+          <a class="btn btn-ghost-d" target="_blank" rel="noopener" href="https://www.openstreetmap.org/directions?route=%3B{{ point[0] }}%2C{{ point[1] }}">Directions in OpenStreetMap</a>
+        </div>
+        <div id="nearby" class="nearby"><p class="note">Looking up schools, hospitals, shops and more nearby…</p></div>
+      {% else %}<p class="note">The map for this property will be added soon.</p>{% endif %}
+    </div>
+
+    <aside class="detail-side">
+      <div class="side-card sticky">
+        <h3>Contact AG Realty</h3>
+        {% if p.status == 'available' %}
+        <div class="side-actions">
+          {% if site.phone1 %}<a class="btn btn-gold" href="tel:+91{{ site.phone1 }}">Call {{ site.phone1 }}</a>{% endif %}
+          <a class="btn btn-wa" target="_blank" rel="noopener" href="{{ wa_link(msg) }}">WhatsApp agent</a>
+        </div>
+        {% else %}<p class="note">This property is {{ p.status }}. Browse similar listings or ask us about new ones.</p>{% endif %}
+        <div class="side-actions row">
+          <button class="fav-text {{ 'on' if p.is_fav }}" data-fav="{{ p.id }}" data-url="{{ url_for('toggle_favorite', pid=p.id) }}" data-label>{{ 'Saved' if p.is_fav else 'Save' }}</button>
+          <button type="button" class="fav-text" data-share data-url="{{ share_url }}" data-title="{{ p.title }}">Share</button>
+        </div>
+        <div class="share-row small">
+          <a target="_blank" rel="noopener" href="https://wa.me/?text={{ (p.title ~ ' ' ~ share_url)|urlencode }}">WhatsApp</a>
+          <a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}">Facebook</a>
+          <a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url={{ share_url|urlencode }}&text={{ p.title|urlencode }}">X</a>
+        </div>
+        <h4>Send an enquiry</h4>
+        {{ enquiry_form(p, url_for('property_detail', pid=p.id), true) }}
+      </div>
+    </aside>
+  </div>
+
+  {% if similar %}<h2 class="mt">Similar properties</h2>{{ property_grid(similar) }}{% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.PROPERTY_MAP = {{ ({'lat': point[0], 'lng': point[1], 'exact': point[2], 'title': p.title} if point else None)|tojson }};
+  window.STORED_FACILITIES = {{ facilities|tojson }};
+</script>
+{% if point %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static', filename='js/property_map.js') }}"></script>{% endif %}
+{% if panoramas %}<script src="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"></script>
+<script>document.querySelectorAll('[data-pano]').forEach(function(el){ if(window.pannellum) pannellum.viewer(el.id,{type:'equirectangular',panorama:el.dataset.pano,autoLoad:true}); });</script>{% endif %}
+{% endblock %}

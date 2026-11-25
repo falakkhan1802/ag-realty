@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Admin | AG Realty{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<section class="wrap section">
+  <h1 class="h2">Overview</h1>
+  <div class="stats">
+    <a class="stat" href="{{ url_for('admin_properties') }}"><b>{{ stats.properties }}</b><span>Published properties</span></a>
+    <a class="stat" href="{{ url_for('admin_properties', state='available') }}"><b>{{ stats.available }}</b><span>Available</span></a>
+    <a class="stat {{ 'alert' if stats.pending }}" href="{{ url_for('admin_properties', state='pending') }}"><b>{{ stats.pending }}</b><span>Awaiting approval</span></a>
+    <a class="stat {{ 'alert' if stats.new_enq }}" href="{{ url_for('admin_enquiries', status='new') }}"><b>{{ stats.new_enq }}</b><span>New enquiries</span></a>
+    <a class="stat" href="{{ url_for('admin_users') }}"><b>{{ stats.users }}</b><span>Users</span></a>
+    <div class="stat"><b>{{ stats.favs }}</b><span>Favorites saved</span></div>
+  </div>
+  <div class="two-col">
+    <div><h2>Latest enquiries</h2>
+      {% for e in latest %}<div class="line"><b>{{ e.name }}</b> <small>{{ e.created_at|datefmt }}</small><br>{{ e.title or 'General enquiry' }}: {{ e.message|truncate(80) }}</div>{% else %}<p class="note">No enquiries yet.</p>{% endfor %}
+      <p><a href="{{ url_for('admin_enquiries') }}">All enquiries</a></p></div>
+    <div><h2>Waiting for approval</h2>
+      {% for p in pending %}<div class="line"><a href="{{ url_for('admin_property_edit', pid=p.id) }}">{{ p.title }}</a> <small>{{ p.location }}</small></div>{% else %}<p class="note">Nothing to review.</p>{% endfor %}</div>
+  </div>
+  <p><a class="btn btn-gold" href="{{ url_for('admin_property_new') }}">Add a property</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,7 @@
+realestate.db
+.secret_key
+FIRST_RUN_ADMIN_PASSWORDS.txt
+static/uploads/*
+!static/uploads/.gitkeep
+__pycache__/
+venv/

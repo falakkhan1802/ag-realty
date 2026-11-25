@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import property_grid, pager with context %}
+{% block title %}{{ {'buy':'Properties for sale','rent':'Properties for rent'}.get(mode,'All properties') }} | AG Realty{% endblock %}
+{% block content %}
+<section class="page-head"><div class="wrap">
+  <h1>{{ {'buy':'Properties for sale','rent':'Properties for rent'}.get(mode,'All properties') }}</h1>
+  <p class="lead">{{ total }} {{ 'property' if total == 1 else 'properties' }} found</p>
+</div></section>
+<section class="wrap section">
+  <form class="filters" method="get" action="{{ request.path }}">
+    {% if not mode %}<label>Type of deal<select name="listing_type"><option value="">Buy or rent</option><option value="buy" {{ 'selected' if request.args.listing_type=='buy' }}>Buy</option><option value="rent" {{ 'selected' if request.args.listing_type=='rent' }}>Rent</option></select></label>{% endif %}
+    <label>Location<input name="q" value="{{ request.args.q or '' }}" placeholder="City or area"></label>
+    <label>Property type<select name="property_type"><option value="">Any</option>{% for t in PROPERTY_TYPES %}<option {{ 'selected' if request.args.property_type==t }}>{{ t }}</option>{% endfor %}</select></label>
+    <label>Min price (₹)<input name="min_price" type="number" min="0" value="{{ request.args.min_price or '' }}"></label>
+    <label>Max price (₹)<input name="max_price" type="number" min="0" value="{{ request.args.max_price or '' }}"></label>
+    <label>Bedrooms<select name="bedrooms"><option value="">Any</option>{% for n in range(1,6) %}<option value="{{ n }}" {{ 'selected' if request.args.bedrooms==n|string }}>{{ n }}+</option>{% endfor %}</select></label>
+    <label>Availability<select name="status"><option value="">All</option>{% for s in ['available','sold','rented'] %}<option value="{{ s }}" {{ 'selected' if request.args.status==s }}>{{ s|capitalize }}</option>{% endfor %}</select></label>
+    <label>Sort by<select name="sort"><option value="newest">Newest</option><option value="price_asc" {{ 'selected' if request.args.sort=='price_asc' }}>Price: low to high</option><option value="price_desc" {{ 'selected' if request.args.sort=='price_desc' }}>Price: high to low</option></select></label>
+    <div class="filter-actions"><button class="btn btn-gold">Apply filters</button><a class="btn btn-ghost-d" href="{{ request.path }}">Clear</a></div>
+  </form>
+  {{ property_grid(items, "No properties match these filters. Try widening your budget or location.") }}
+  {{ pager(page, pages, endpoint, keep) }}
+</section>
+{% endblock %}

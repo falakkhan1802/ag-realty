@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Settings | AG Realty{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<section class="wrap section narrow">
+  <h1 class="h2">Settings</h1>
+
+  <h2>Business contact details</h2>
+  <form class="form side-card" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="part" value="contact">
+    <div class="two"><label>Phone 1<input name="phone1" value="{{ site.phone1 }}"></label><label>Phone 2<input name="phone2" value="{{ site.phone2 }}"></label></div>
+    <div class="two"><label>WhatsApp number (with country code, digits only)<input name="whatsapp" value="{{ site.whatsapp }}"></label><label>Email<input name="email" type="email" value="{{ site.email }}"></label></div>
+    <label>Office address<input name="address" value="{{ site.address }}"></label>
+    <label>Opening hours<input name="hours" value="{{ site.hours }}"></label>
+    <button class="btn btn-gold btn-sm">Save contact details</button>
+  </form>
+
+  <h2 class="mt">Social media links</h2>
+  <p class="note">A link shows on the website only when it is switched on and has a URL. Add Facebook or any other link whenever you are ready.</p>
+  <form class="form side-card" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="part" value="social">
+    {% for s in links %}<div class="social-row"><input type="hidden" name="id" value="{{ s.id }}">
+      <label>{{ s.platform|capitalize }} name<input name="label_{{ s.id }}" value="{{ s.label }}"></label>
+      <label>URL<input name="url_{{ s.id }}" type="url" value="{{ s.url }}" placeholder="https://"></label>
+      <label class="check"><input type="checkbox" name="active_{{ s.id }}" {{ 'checked' if s.active }}> Show</label>
+      <label class="check"><input type="checkbox" name="remove_{{ s.id }}"> Remove</label></div>{% endfor %}
+    <h4>Add another link</h4>
+    <div class="social-row"><label>Platform<select name="new_platform"><option>instagram</option><option>facebook</option><option>youtube</option><option>x</option><option>linkedin</option><option>link</option></select></label>
+      <label>Name<input name="new_label" placeholder="Facebook page"></label><label>URL<input name="new_url" type="url" placeholder="https://"></label></div>
+    <button class="btn btn-gold btn-sm">Save social links</button>
+  </form>
+
+  <h2 class="mt">My admin account</h2>
+  <form class="form side-card" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="part" value="account">
+    <div class="two"><label>Name<input name="name" value="{{ current_admin.name }}"></label><label>Login email<input name="email" type="email" value="{{ current_admin.email }}"></label></div>
+    <div class="two"><label>Current password (required)<input name="current_password" type="password" required autocomplete="current-password"></label><label>New password (optional)<input name="new_password" type="password" minlength="8" autocomplete="new-password"></label></div>
+    <button class="btn btn-gold btn-sm">Save account</button>
+  </form>
+  <p class="note">AG Realty is limited to two admin accounts. A third cannot be created.</p>
+</section>
+{% endblock %}

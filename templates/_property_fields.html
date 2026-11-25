@@ -1,0 +1,48 @@
+{# Shared by the admin editor and the public "Sell" form. Expects: p (dict), admin (bool) #}
+<fieldset><legend>Basics</legend>
+  <label>Title<input name="title" required maxlength="160" value="{{ p.get('title','') }}" placeholder="3 BHK apartment near the beach"></label>
+  <div class="three-f">
+    <label>Buy or rent<select name="listing_type">{% for v,l in (('buy','Buy (for sale)'),('rent','Rent')) %}<option value="{{ v }}" {{ 'selected' if p.get('listing_type')==v }}>{{ l }}</option>{% endfor %}</select></label>
+    <label>Property type<select name="property_type">{% for t in PROPERTY_TYPES %}<option {{ 'selected' if p.get('property_type')==t }}>{{ t }}</option>{% endfor %}</select></label>
+    <label>Price in ₹ (monthly rent if renting)<input name="price" type="number" min="0" step="any" required value="{{ p.get('price','') if p.get('price') is not none }}"></label>
+  </div>
+  <div class="three-f">
+    <label>Bedrooms<input name="bedrooms" type="number" min="0" value="{{ p.get('bedrooms','') }}"></label>
+    <label>Bathrooms<input name="bathrooms" type="number" min="0" value="{{ p.get('bathrooms','') }}"></label>
+    <label>Area (sq ft)<input name="area_sqft" type="number" min="0" step="any" value="{{ p.get('area_sqft','') if p.get('area_sqft') is not none }}"></label>
+  </div>
+  <label>Amenities (separate with commas)<input name="amenities" value="{{ p.get('amenities','') }}" placeholder="Parking, Lift, Security, Garden, Power backup"></label>
+  <label>Description<textarea name="description" rows="6">{{ p.get('description','') }}</textarea></label>
+</fieldset>
+
+<fieldset><legend>Location</legend>
+  <label>Public area / city<input name="location" required value="{{ p.get('location','') }}" placeholder="Honnavar, Uttara Kannada"></label>
+  <label>Private address<textarea name="address_private" rows="2" placeholder="Visible only to AG Realty admins">{{ p.get('address_private','') }}</textarea></label>
+  <p class="note">Click the map to place the property. Visitors see only an approximate area{% if admin %} unless you tick "Show exact location" below{% endif %}.</p>
+  <div class="pick-bar"><input id="place-search" placeholder="Search a place to jump the map" aria-label="Search a place"><button type="button" class="btn btn-ghost-d btn-sm" id="place-go">Search</button></div>
+  <div id="pick-map" class="map short"></div>
+  <div class="two"><label>Latitude<input id="lat" name="lat" value="{{ p.get('lat','') if p.get('lat') is not none }}"></label><label>Longitude<input id="lng" name="lng" value="{{ p.get('lng','') if p.get('lng') is not none }}"></label></div>
+</fieldset>
+
+<fieldset><legend>Media</legend>
+  <label>Property photos (select several)<input type="file" name="photos" accept="image/*" multiple></label>
+  {% if admin %}
+  <div class="two"><label>3D / future-view images<input type="file" name="visuals" accept="image/*" multiple></label>
+  <label>These images are<select name="visual_kind">{% for v,l in VISUAL_CHOICES %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></label></div>
+  <p class="note">3D and proposed images are labelled "3D Visualization", "Proposed View" or "360° Panorama" on the website automatically.</p>
+  <div class="two"><label>Upload videos<input type="file" name="videos" accept="video/*" multiple></label>
+  <label>Video type<select name="video_kind">{% for v,l in VIDEO_KINDS.items() %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></label></div>
+  {% endif %}
+  <label>Video link (YouTube, Vimeo or a direct .mp4 link)<input name="video_url" type="url" placeholder="https://"></label>
+</fieldset>
+
+{% if admin %}
+<fieldset><legend>Status and visibility</legend>
+  <div class="three-f">
+    <label>Availability<select name="status">{% for s in ('available','sold','rented') %}<option value="{{ s }}" {{ 'selected' if p.get('status')==s }}>{{ s|capitalize }}</option>{% endfor %}</select></label>
+  </div>
+  <label class="check"><input type="checkbox" name="approved" value="1" {{ 'checked' if p.get('approved') }}> Published on the website</label>
+  <label class="check"><input type="checkbox" name="featured" value="1" {{ 'checked' if p.get('featured') }}> Featured on the home page</label>
+  <label class="check"><input type="checkbox" name="show_exact" value="1" {{ 'checked' if p.get('show_exact') }}> Show exact location and address publicly</label>
+</fieldset>
+{% endif %}

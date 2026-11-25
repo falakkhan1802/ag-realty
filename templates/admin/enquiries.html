@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Enquiries | AG Realty{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<section class="wrap section">
+  <div class="section-head"><h1 class="h2">Enquiries</h1>
+    <div class="tabs">{% for v,l in (('','All'),('new','New'),('contacted','Contacted'),('closed','Closed')) %}<a href="{{ url_for('admin_enquiries', status=v) }}" class="{{ 'on' if status==v }}">{{ l }}</a>{% endfor %}</div></div>
+  {% for e in rows %}
+  <article class="enq {{ e.status }}">
+    <div class="enq-head"><b>{{ e.name }}</b><span class="status {{ 'pending' if e.status=='new' else 'available' if e.status=='contacted' else 'sold' }}">{{ e.status|capitalize }}</span><small>{{ e.created_at }}</small></div>
+    <p>{{ e.message }}</p>
+    <p class="note">{% if e.title %}About: <a href="{{ url_for('property_detail', pid=e.property_id) }}">{{ e.title }}</a> · {% endif %}
+      {% if e.phone %}<a href="tel:{{ e.phone }}">{{ e.phone }}</a> · <a target="_blank" rel="noopener" href="https://wa.me/{{ e.phone|replace(' ','')|replace('+','') if e.phone|length > 10 else '91' ~ e.phone }}">WhatsApp</a>{% endif %}
+      {% if e.email %} · <a href="mailto:{{ e.email }}">{{ e.email }}</a>{% endif %}</p>
+    <form method="post" class="row-actions"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="id" value="{{ e.id }}">
+      {% if e.status != 'contacted' %}<button class="btn btn-ghost-d btn-sm" name="action" value="contacted">Mark contacted</button>{% endif %}
+      {% if e.status != 'closed' %}<button class="btn btn-ghost-d btn-sm" name="action" value="closed">Close</button>{% endif %}
+      {% if e.status != 'new' %}<button class="btn btn-ghost-d btn-sm" name="action" value="new">Reopen</button>{% endif %}
+      <button class="linklike danger" name="action" value="delete" onclick="return confirm('Delete this enquiry?')">Delete</button></form>
+  </article>
+  {% else %}<div class="empty"><p>No enquiries here.</p></div>{% endfor %}
+</section>
+{% endblock %}

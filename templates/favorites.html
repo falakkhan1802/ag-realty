@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% from "_macros.html" import property_grid with context %}
+{% block title %}My favorites | AG Realty{% endblock %}
+{% block content %}
+<section class="page-head"><div class="wrap"><h1>My favorites</h1><p class="lead">Properties you saved.</p></div></section>
+<section class="wrap section">{{ property_grid(items, "You have not saved any properties yet. Tap the heart on a property to save it.") }}</section>
+{% endblock %}

@@ -1,0 +1,10 @@
+<div class="admin-bar"><div class="wrap">
+  <a href="{{ url_for('admin_home') }}" class="{{ 'on' if request.endpoint=='admin_home' }}">Overview</a>
+  <a href="{{ url_for('admin_properties') }}" class="{{ 'on' if request.endpoint in ('admin_properties','admin_property_edit') }}">Properties</a>
+  <a href="{{ url_for('admin_property_new') }}" class="{{ 'on' if request.endpoint=='admin_property_new' }}">Add property</a>
+  <a href="{{ url_for('admin_enquiries') }}" class="{{ 'on' if request.endpoint=='admin_enquiries' }}">Enquiries</a>
+  <a href="{{ url_for('admin_users') }}" class="{{ 'on' if request.endpoint=='admin_users' }}">Users</a>
+  <a href="{{ url_for('admin_settings') }}" class="{{ 'on' if request.endpoint=='admin_settings' }}">Settings</a>
+  <span class="grow"></span>
+  <form method="post" action="{{ url_for('admin_logout') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linklike">Log out ({{ current_admin.name }})</button></form>
+</div></div>

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import property_grid with context %}
+{% block title %}My account | AG Realty{% endblock %}
+{% block content %}
+<section class="page-head"><div class="wrap"><h1>Hello, {{ current_user.name.split()[0] }}</h1><p class="lead">Your saved homes, submissions and enquiries.</p></div></section>
+<section class="wrap section">
+  <div class="stats">
+    <a class="stat" href="{{ url_for('favorites') }}"><b>{{ fav_count }}</b><span>Favorites</span></a>
+    <div class="stat"><b>{{ mine|length }}</b><span>Properties submitted</span></div>
+    <div class="stat"><b>{{ enquiries|length }}</b><span>Enquiries sent</span></div>
+  </div>
+
+  <div class="section-head"><h2>My submitted properties</h2><a href="{{ url_for('sell') }}">Submit another</a></div>
+  {% if mine %}
+  <div class="table-wrap"><table class="table"><thead><tr><th>Property</th><th>Deal</th><th>Price</th><th>Review</th><th></th></tr></thead><tbody>
+    {% for p in mine %}<tr><td data-l="Property">{{ p.title }}<br><small>{{ p.location }}</small></td><td data-l="Deal">{{ 'Sale' if p.listing_type=='buy' else 'Rent' }}</td><td data-l="Price">{{ p.price|inr }}</td>
+    <td data-l="Review"><span class="status {{ 'available' if p.approved else 'pending' }}">{{ 'Live' if p.approved else 'Pending review' }}</span></td><td><a href="{{ url_for('property_detail', pid=p.id) }}">View</a></td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<div class="empty"><p>You have not submitted a property yet.</p><a class="btn btn-gold" href="{{ url_for('sell') }}">Submit a property</a></div>{% endif %}
+
+  <h2 class="mt">My enquiries</h2>
+  {% if enquiries %}
+  <div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Property</th><th>Message</th><th>Status</th></tr></thead><tbody>
+    {% for e in enquiries %}<tr><td data-l="Date">{{ e.created_at|datefmt }}</td><td data-l="Property">{{ e.title or 'General' }}</td><td data-l="Message">{{ e.message|truncate(90) }}</td><td data-l="Status">{{ e.status|capitalize }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<p class="note">No enquiries yet.</p>{% endif %}
+
+  <h2 class="mt">Profile</h2>
+  <form class="form side-card" method="post" action="{{ url_for('update_profile') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="two"><label>Name<input name="name" value="{{ current_user.name }}" required></label><label>Phone<input name="phone" value="{{ current_user.phone }}"></label></div>
+    <div class="two"><label>Current password<input name="current_password" type="password" autocomplete="current-password"></label><label>New password<input name="new_password" type="password" minlength="8" autocomplete="new-password"></label></div>
+    <p class="note">Leave the password fields empty to keep your current password. Email: {{ current_user.email }}</p>
+    <button class="btn btn-gold">Save profile</button>
+  </form>
+</section>
+{% endblock %}

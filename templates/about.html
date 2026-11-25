@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}About AG Realty{% endblock %}
+{% block content %}
+<section class="page-head"><div class="wrap"><h1>About AG Realty</h1><p class="lead">A property partner for buyers, tenants and owners.</p></div></section>
+<section class="wrap section narrow">
+  <p class="prose">AG Realty helps families, investors and businesses buy, rent and sell property. Every listing shows real photos, clear pricing and the places around it, so you can decide with confidence.</p>
+  <p class="prose">Where a building is not finished, we label our images as <strong>3D Visualization</strong> or <strong>Proposed View</strong>. Only photos are shown as photos.</p>
+  <p class="prose">We protect owners' privacy. Private homes show an approximate map area, and the exact address is shared when you contact us.</p>
+  <div class="three mt">
+    <div class="path"><h3>Buy</h3><p>Shortlist, visit and close with guidance at each step.</p></div>
+    <div class="path"><h3>Rent</h3><p>Verified listings with monthly prices shown upfront.</p></div>
+    <div class="path"><h3>Sell</h3><p>Submit your property and our team reviews and markets it.</p></div>
+  </div>
+  <p class="mt"><a class="btn btn-gold" href="{{ url_for('contact') }}">Contact AG Realty</a></p>
+</section>
+{% endblock %}

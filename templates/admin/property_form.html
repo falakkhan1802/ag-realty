@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if pid else 'Add' }} property | AG Realty{% endblock %}
+{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block content %}
+{% include "admin/_nav.html" %}
+<section class="wrap section narrow">
+  <div class="section-head"><h1 class="h2">{{ 'Edit property' if pid else 'Add property' }}</h1>{% if pid %}<a href="{{ url_for('property_detail', pid=pid) }}">View on website</a>{% endif %}</div>
+  {% for e in errors %}<div class="flash error">{{ e }}</div>{% endfor %}
+  <form class="form big-form" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% set admin = true %}{% include "_property_fields.html" %}
+    <button class="btn btn-gold">{{ 'Save changes' if pid else 'Add property' }}</button>
+  </form>
+
+  {% if pid %}
+  <h2 class="mt">Uploaded media</h2>
+  <div class="media-grid">
+    {% for i in images %}<div class="m-item"><img src="{{ media_url(i.filename) }}" alt="" loading="lazy"><span class="m-tag">{{ IMAGE_KINDS.get(i.kind) or 'Photo' }}</span>
+      <form method="post" action="{{ url_for('admin_media_delete', kind='image', mid=i.id) }}" onsubmit="return confirm('Remove this image?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linklike danger">Remove</button></form></div>{% endfor %}
+    {% for v in videos %}<div class="m-item"><div class="m-video">{{ VIDEO_KINDS[v.kind] }}<small>{{ v.url or v.filename }}</small></div>
+      <form method="post" action="{{ url_for('admin_media_delete', kind='video', mid=v.id) }}" onsubmit="return confirm('Remove this video?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linklike danger">Remove</button></form></div>{% endfor %}
+    {% if not images and not videos %}<p class="note">No media yet. Add photos above and save.</p>{% endif %}
+  </div>
+
+  <h2 class="mt" id="facilities">Nearby facilities</h2>
+  <p class="note">The property page automatically looks up schools, hospitals, shops and more from OpenStreetMap. Add your own entries here to show places the map misses.</p>
+  {% if facilities %}<div class="table-wrap"><table class="table"><thead><tr><th>Category</th><th>Name</th><th>Distance</th><th></th></tr></thead><tbody>
+    {% for f in facilities %}<tr><td data-l="Category">{{ dict(FACILITY_CATS).get(f.category, f.category) }}</td><td data-l="Name">{{ f.name }}</td><td data-l="Distance">{{ (f.distance_m ~ ' m') if f.distance_m is not none else '' }}</td>
+      <td><form class="inline" method="post" action="{{ url_for('admin_facility_delete', fid=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="linklike danger">Remove</button></form></td></tr>{% endfor %}
+  </tbody></table></div>{% endif %}
+  <form class="form side-card" method="post" action="{{ url_for('admin_facility_add', pid=pid) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="three-f"><label>Category<select name="category">{% for v,l in FACILITY_CATS %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select></label>
+    <label>Name<input name="name" required></label><label>Distance (metres)<input name="distance_m" type="number" min="0"></label></div>
+    <div class="two"><label>Latitude (optional)<input name="lat"></label><label>Longitude (optional)<input name="lng"></label></div>
+    <button class="btn btn-gold btn-sm">Add facility</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ url_for('static', filename='js/picker.js') }}"></script>{% endblock %}
